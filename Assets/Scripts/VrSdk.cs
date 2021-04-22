@@ -196,7 +196,6 @@ namespace TiltBrush
       // Set 90Hz if possible. To see the current framerate, look in the logs for prints like this one. The first number is the frame rate, the second is the display refresh rate
       // VrApi   : FPS=90/90,Prd=33ms,Tear=0,Early=0...
       float[] freqs = OVRManager.display.displayFrequenciesAvailable;
-      Debug.Log($"Supported frequencies are: {freqs}");
       if (Array.Exists(freqs, element => element == 90.0f))
       {
           OVRPlugin.systemDisplayFrequency = 90.0f;

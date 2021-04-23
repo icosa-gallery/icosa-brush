@@ -184,29 +184,35 @@ namespace TiltBrush
             if (App.Config.m_SdkMode == SdkMode.Oculus)
             {
 #if OCULUS_SUPPORTED
-      // ---------------------------------------------------------------------------------------- //
-      // OculusVR
-      // ---------------------------------------------------------------------------------------- //
-      OVRManager manager = gameObject.AddComponent<OVRManager>();
-      manager.trackingOriginType = OVRManager.TrackingOrigin.FloorLevel;
-      manager.useRecommendedMSAALevel = false;
+                // ---------------------------------------------------------------------------------------- //
+                // OculusVR
+                // ---------------------------------------------------------------------------------------- //
+                OVRManager manager = gameObject.AddComponent<OVRManager>();
+                manager.trackingOriginType = OVRManager.TrackingOrigin.FloorLevel;
+                manager.useRecommendedMSAALevel = false;
 
-      SetControllerStyle(TiltBrush.ControllerStyle.OculusTouch);
+                SetControllerStyle(TiltBrush.ControllerStyle.OculusTouch);
 
-      // Set 90Hz if possible. To see the current framerate, look in the logs for prints like this one. The first number is the frame rate, the second is the display refresh rate
-      // VrApi   : FPS=90/90,Prd=33ms,Tear=0,Early=0...
-      float[] freqs = OVRManager.display.displayFrequenciesAvailable;
-      if (Array.Exists(freqs, element => element == 90.0f))
-      {
-          OVRPlugin.systemDisplayFrequency = 90.0f;
-      }
-      OVRManager.DisplayRefreshRateChanged += DisplayRefreshRateChanged;
+                // Set custom refresh rate, if possible. To see the current framerate, look in the logs for prints like this one. The first number is the actual frame rate, the second is the display refresh rate (aka target)
+                // VrApi   : FPS=90/90,Prd=33ms,Tear=0,Early=0...
+                float targetDisplayRefresh = App.UserConfig.Video.DisplayRefresh;
+                float[] freqs = OVRManager.display.displayFrequenciesAvailable;
+                foreach (float freq in freqs)
+                {
+                    if (Math.Abs(freq - targetDisplayRefresh) < 1)
+                    {
+                        OVRPlugin.systemDisplayFrequency = freq;
+                        OVRManager.DisplayRefreshRateChanged += DisplayRefreshRateChanged;
+                        Debug.Log($"Set display refresh to {freq}");
+                        break;
+                    }
+                }
 
-      // adding components to the VR Camera needed for fading view and getting controller poses.
-      m_VrCamera.gameObject.AddComponent<OculusCameraFade>();
-      m_VrCamera.gameObject.AddComponent<OculusPreCullHook>();
+                // adding components to the VR Camera needed for fading view and getting controller poses.
+                m_VrCamera.gameObject.AddComponent<OculusCameraFade>();
+                m_VrCamera.gameObject.AddComponent<OculusPreCullHook>();
 
-      gameObject.AddComponent<OculusMRCCameraUpdate>();
+                gameObject.AddComponent<OculusMRCCameraUpdate>();
 #endif // OCULUS_SUPPORTED
             }
             else if (App.Config.m_SdkMode == SdkMode.SteamVR)

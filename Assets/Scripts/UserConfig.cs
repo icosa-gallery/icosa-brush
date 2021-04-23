@@ -254,6 +254,7 @@ namespace TiltBrush
 
             private const float kDefaultSmoothing = 0.98f;
             private const float kDefaultOdsPoleCollapsing = 1.0f;
+            private const float kDefaultDisplayRefresh = 72.0f;
 
             float? m_FPS;
             public float FPS
@@ -425,6 +426,17 @@ namespace TiltBrush
                     }
                 }
             }
+
+            float? m_DisplayRefresh;
+            public float DisplayRefresh
+            {
+                get { return m_DisplayRefresh ?? kDefaultDisplayRefresh; }
+                set
+                {
+                    m_DisplayRefresh = value;
+                }
+            }
+
         }
 
         public VideoConfig Video;

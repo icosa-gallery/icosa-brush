@@ -12,7 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using UnityEngine;
 #if UNITY_EDITOR
@@ -76,6 +78,6 @@ namespace TiltBrush
             System.IO.File.WriteAllLines(path, guids);
 #endif
         }
-    } // TiltBrushManifest
+    }  // TiltBrushManifest
 
-} // namespace TiltBrush
+}  // namespace TiltBrush

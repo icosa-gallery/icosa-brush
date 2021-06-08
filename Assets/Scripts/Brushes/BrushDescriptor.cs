@@ -30,9 +30,7 @@ namespace TiltBrush
         /// which want user-friendly UI that looks like a BrushDescriptor.
         /// One reason to use a string rather than a direct reference is
         /// to keep Unity from forcing that asset to be included in a build.
-        public class AsStringGuidAttribute : PropertyAttribute
-        {
-        }
+        public class AsStringGuidAttribute : PropertyAttribute { }
 
         static private ExportGlTF.ExportManifest sm_gltfManifest;
         static public ExportGlTF.ExportManifest GltfManifest
@@ -102,7 +100,7 @@ namespace TiltBrush
         public float m_BrushVolumeUpSpeed = 4f;
         public float m_BrushVolumeDownSpeed = 4f;
         public float m_VolumeVelocityRangeMultiplier = 1f;
-        public bool m_AudioReactive; // whether we should show the audio reactive icon on the brush page
+        public bool m_AudioReactive;  // whether we should show the audio reactive icon on the brush page
         public AudioClip m_ButtonAudio;
 
         [Header("Material")]
@@ -119,7 +117,7 @@ namespace TiltBrush
         [DisabledProperty]
         [Vec2AsRange(LowerBound = 0, Slider = false, HideMax = true)]
         [SerializeField]
-        private Vector2 m_PressureSizeRange = new Vector2(.1f, 1f);
+        public Vector2 m_PressureSizeRange = new Vector2(.1f, 1f);
         public float m_SizeVariance; // Used by particle and spray brushes.
         [Range(.001f, 1)]
         public float m_PreviewPressureSizeMin = .001f;
@@ -156,10 +154,10 @@ namespace TiltBrush
         public bool m_TubeStoreRadiusInTexcoord0Z;
 
         [Header("Misc")]
-        public bool m_RenderBackfaces; // whether we should submit backfaces to renderer
-        public bool m_BackIsInvisible; // whether the backside is visible to the user
+        public bool m_RenderBackfaces;  // whether we should submit backfaces to renderer
+        public bool m_BackIsInvisible;  // whether the backside is visible to the user
         public float m_BackfaceHueShift;
-        public float m_BoundsPadding; // amount to pad bounding box by in canvas space in meters
+        public float m_BoundsPadding;  // amount to pad bounding box by in canvas space in meters
 
         [Tooltip("For particularly expensive geometry generation: do not incrementally play back the stroke.")]
         public bool m_PlayBackAtStrokeGranularity;
@@ -217,7 +215,7 @@ namespace TiltBrush
 #if UNITY_EDITOR
             return GetExportTextureFilenameEditor();
 #else
-            return GetExportTextureFilenameStandalone();
+    return GetExportTextureFilenameStandalone();
 #endif
         }
 
@@ -308,6 +306,19 @@ namespace TiltBrush
         // END IExportableMaterial interface
         // ===============================================================================================
 
+        public UserVariantBrush UserVariantBrush { get; set; }
+
+        /// <summary>
+        /// Guid of the built-in brush this brush is based upon. Used for variant brushes.
+        /// If this is not set (Which is the case for built-in brushes), it will return its own Guid.
+        /// </summary>
+        public Guid BaseGuid
+        {
+            get { return m_BaseGuid.HasValue ? m_BaseGuid.Value : (Guid)m_Guid; }
+            set { m_BaseGuid = value; }
+        }
+        private Guid? m_BaseGuid;
+
         public bool NeedsStraightEdgeProxy
         {
             get
@@ -325,10 +336,8 @@ namespace TiltBrush
         /// Return non-instantiated material
         public Material Material
         {
-            get
-            {
-                return m_Material;
-            }
+            get { return m_Material; }
+            set { m_Material = value; }
         }
 
         public override string ToString()
@@ -412,8 +421,8 @@ namespace TiltBrush
                 if (!path.EndsWith(EXPORT_TEXTURE_EXTENSION))
                 {
                     throw new InvalidOperationException(string.Format(
-                        "{0} texture filetype ({1}) should be a '{2}'.",
-                        m_Description, path, EXPORT_TEXTURE_EXTENSION));
+                       "{0} texture filetype ({1}) should be a '{2}'.",
+                       m_Description, path, EXPORT_TEXTURE_EXTENSION));
                 }
                 return path;
             }
@@ -442,4 +451,4 @@ namespace TiltBrush
 #endif
     }
 
-} // namespace TiltBrush
+}  // namespace TiltBrush

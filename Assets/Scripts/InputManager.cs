@@ -1,4 +1,4 @@
-﻿// Copyright 2020 The Tilt Brush Authors
+// Copyright 2020 The Tilt Brush Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -135,10 +135,24 @@ namespace TiltBrush
             Save,
             Load,
 
-            Forward,
-            Backward,
+            MonoCameraForward,
+            MonoCameraBackward,
+            MonoCameraLeft,
+            MonoCameraRight,
+            MonoCameraUp,
+            MonoCameraDown,
+            MonoCameraIncreaseCursorDistance,
+            MonoCameraDecreaseCursorDistance,
 
-            PositionMonoCamera,
+            ToggleMonoCameraDrawMode,
+
+            ToggleMonoUi,
+            ToggleMonoPanel1,
+            ToggleMonoPanel2,
+            ToggleMonoPanel3,
+            ToggleMonoPanel4,
+            ToggleMonoPanel5,
+            ToggleMonoPanel6,
 
             ToggleHeadStationaryOrWobble,
             ToggleHeadStationaryOrFollow,
@@ -164,9 +178,8 @@ namespace TiltBrush
         // active.
         private static readonly KeyMap m_KeyMap = new KeyMap
         {
-            { (int)KeyboardShortcut.LockToHead, new[] { KeyCode.LeftShift } },
             { (int)KeyboardShortcut.PivotRotation, new[] { KeyCode.LeftControl } },
-            { (int)KeyboardShortcut.Scale, new[] { KeyCode.Tab } },
+            // { (int)KeyboardShortcut.Scale, new[] { KeyCode.Tab } },
 
             { (int)KeyboardShortcut.RewindTimeline, new[] { KeyCode.Minus } },
             { (int)KeyboardShortcut.AdvanceTimeline, new[] { KeyCode.Plus } },
@@ -179,7 +192,7 @@ namespace TiltBrush
             { (int)KeyboardShortcut.Abort, new[] { KeyCode.Escape } },
 
             { (int)KeyboardShortcut.SaveNew, new[] { KeyCode.S } },
-            { (int)KeyboardShortcut.ExportAll, new[] { KeyCode.A } },
+            { (int)KeyboardShortcut.ExportAll, new[] { KeyCode.I } },
             { (int)KeyboardShortcut.ToggleProfile, new[] { KeyCode.K } },
             // Context-dependent
             { (int)KeyboardShortcut.SwitchCamera, new[] { KeyCode.C } },
@@ -189,7 +202,7 @@ namespace TiltBrush
             { (int)KeyboardShortcut.PreviousTool, new[] { KeyCode.LeftArrow } },
             { (int)KeyboardShortcut.NextTool, new[] { KeyCode.RightArrow } },
             { (int)KeyboardShortcut.CycleSymmetryMode, new[] { KeyCode.F2 } },
-            { (int)KeyboardShortcut.Export, new[] { KeyCode.E } },
+            { (int)KeyboardShortcut.Export, new[] { KeyCode.U } },
             { (int)KeyboardShortcut.StoreHeadTransform, new[] { KeyCode.O } }, // Also checks for shift
             { (int)KeyboardShortcut.RecallHeadTransform, new[] { KeyCode.O } },
             { (int)KeyboardShortcut.ToggleLightType, new[] { KeyCode.P } },
@@ -202,10 +215,23 @@ namespace TiltBrush
             { (int)KeyboardShortcut.Save, new[] { KeyCode.S } },
             { (int)KeyboardShortcut.Load, new[] { KeyCode.L } },
 
-            { (int)KeyboardShortcut.Forward, new[] { KeyCode.N } },
-            { (int)KeyboardShortcut.Backward, new[] { KeyCode.M } },
+            { (int)KeyboardShortcut.MonoCameraForward, new[] { KeyCode.W } },
+            { (int)KeyboardShortcut.MonoCameraBackward, new[] { KeyCode.S } },
+            { (int)KeyboardShortcut.MonoCameraLeft, new[] { KeyCode.A } },
+            { (int)KeyboardShortcut.MonoCameraRight, new[] { KeyCode.D } },
+            { (int)KeyboardShortcut.MonoCameraUp, new[] { KeyCode.Space } },
+            { (int)KeyboardShortcut.MonoCameraDown, new[] { KeyCode.LeftControl } },
+            { (int)KeyboardShortcut.MonoCameraIncreaseCursorDistance, new[] { KeyCode.R } },
+            { (int)KeyboardShortcut.MonoCameraDecreaseCursorDistance, new[] { KeyCode.F } },
 
-            { (int)KeyboardShortcut.PositionMonoCamera, new[] { KeyCode.LeftAlt, KeyCode.RightAlt } },
+            { (int)KeyboardShortcut.ToggleMonoCameraDrawMode, new[] { KeyCode.LeftShift, KeyCode.RightShift } },
+            { (int)KeyboardShortcut.ToggleMonoUi, new[] { KeyCode.Tab } },
+            { (int)KeyboardShortcut.ToggleMonoPanel1, new[] { KeyCode.Alpha1 } },
+            { (int)KeyboardShortcut.ToggleMonoPanel2, new[] { KeyCode.Alpha2 } },
+            { (int)KeyboardShortcut.ToggleMonoPanel3, new[] { KeyCode.Alpha3 } },
+            { (int)KeyboardShortcut.ToggleMonoPanel4, new[] { KeyCode.Alpha4 } },
+            { (int)KeyboardShortcut.ToggleMonoPanel5, new[] { KeyCode.Alpha5 } },
+            { (int)KeyboardShortcut.ToggleMonoPanel6, new[] { KeyCode.Alpha6 } },
 
             { (int)KeyboardShortcut.ToggleHeadStationaryOrWobble, new[] { KeyCode.Q } },
             { (int)KeyboardShortcut.ToggleHeadStationaryOrFollow, new[] { KeyCode.W } },
@@ -680,7 +706,7 @@ namespace TiltBrush
                 case SketchCommands.Activate:
                     return Brush.GetCommand(rCommand) || (!isDemoMode && GetMouseButton(0));
                 case SketchCommands.AltActivate:
-                    return GetMouseButton(1) || Wand.GetCommand(rCommand);
+                    return Wand.GetCommand(rCommand);
                 case SketchCommands.LockToHead:
                     return GetKeyboardShortcut(shortcut.Value);
                 case SketchCommands.PivotRotation:
@@ -842,11 +868,6 @@ namespace TiltBrush
                 Mathf.Abs(mv.y) > m_InputThreshold ? mv.y : 0f);
         }
 
-        public float GetMouseWheel()
-        {
-            return Input.GetAxis("Mouse ScrollWheel");
-        }
-
         /// Mouse input is ignored on mobile platform because the Oculus Quest seems to emulate mouse
         /// presses when you fiddle with the joystick.
         public bool GetMouseButton(int button)
@@ -910,13 +931,20 @@ namespace TiltBrush
 
         public float GetToolSelection()
         {
-            float fScrollWheel = Input.GetAxis("Mouse ScrollWheel");
-            if (Mathf.Abs(fScrollWheel) > m_InputThreshold)
+            if (App.Instance.IsMonoscopicMode())
             {
-                return fScrollWheel;
+                return 0;
             }
+            else
+            {
+                float fScrollWheel = Input.GetAxis("Mouse ScrollWheel");
+                if (Mathf.Abs(fScrollWheel) > m_InputThreshold)
+                {
+                    return fScrollWheel;
+                }
 
-            return Wand.GetScrollYDelta();
+                return Wand.GetScrollYDelta();
+            }
         }
 
         public bool GetTouchPosition(out Vector2 touchPos)
